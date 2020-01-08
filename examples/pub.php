@@ -9,7 +9,7 @@ error_reporting(E_WARNING);
 $publisher = new Publisher(getProvider());
 
 $payload = [
-    'event_id' => rand(10000, 100000),
+    'event_id' => \Ramsey\Uuid\Uuid::uuid4()->toString(),
     'name' => 'docx',
     'age' => 25
 ];

@@ -7,7 +7,6 @@
 
 namespace Chocofamily\PubSub;
 
-use Chocofamily\Http\CorrelationId;
 use Chocofamily\PubSub\Provider\ProviderInterface;
 
 class Subscriber
@@ -66,14 +65,6 @@ class Subscriber
 
     public function callback(Message $message)
     {
-        $id = $message->getHeader('correlation_id');
-        if (empty($id)) {
-            $id = (new \Phalcon\Security\Random())->uuid();
-        }
-
-        $spanId = $message->getHeader('span_id', 0);
-        CorrelationId::getInstance()->setCorrelation($id, $spanId);
-
         call_user_func($this->callback, $message->getHeaders(), $message->getPayload());
     }
 }
