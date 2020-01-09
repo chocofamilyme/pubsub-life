@@ -26,7 +26,5 @@ class PublisherCest
         $I->assertEquals($provider->queue['test.route']['message'], '{"event_id":1,"text":"Hello"}');
 
         $I->assertArrayHasKey('test', $publisher->getHeader());
-        $I->assertArrayHasKey('correlation_id', $publisher->getHeader());
-        $I->assertArrayHasKey('application_headers', $publisher->getHeader());
     }
 }

@@ -2,12 +2,9 @@
 
 namespace Unit\Provider;
 
-use Chocofamily\PubSub\Provider\AbstractProvider;
-use Chocofamily\PubSub\Provider\RabbitMQ;
+use Chocofamily\PubSub\Cache\Memcached;
 use Chocofamily\PubSub\Repeater;
 use Helper\PubSub\DefaultExtendedProvider;
-use Phalcon\Cache\Backend\Libmemcached;
-use Phalcon\Cache\Frontend\Data;
 
 class ProviderCest
 {
@@ -24,9 +21,7 @@ class ProviderCest
             'prefix'   => 'restapi_cache_',
             'cacheDir' => '../storage/cache',
         ];
-        $cache       = new Libmemcached(
-            new Data(['lifetime' => 86400]), $cacheConfig
-        );
+        $cache       = new Memcached();
 
         $testProvider = DefaultExtendedProvider::getInstance([], new Repeater($cache));
 
