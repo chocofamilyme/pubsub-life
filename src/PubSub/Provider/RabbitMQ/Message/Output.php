@@ -64,6 +64,9 @@ class Output implements \Chocofamily\PubSub\Message
         return $this->payload;
     }
 
+    /**
+     * @return array
+     */
     public function getHeaders()
     {
         return $this->headers;

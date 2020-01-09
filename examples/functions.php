@@ -3,8 +3,6 @@
 use Chocofamily\PubSub\Provider\RabbitMQ;
 use Chocofamily\PubSub\Repeater;
 
-class MemcachedCache extends \Memcached implements \Chocofamily\PubSub\CacheInterface {}
-
 function getCacheInstance()
 {
     $cacheConfig = [
@@ -19,7 +17,8 @@ function getCacheInstance()
         'cacheDir' => '../storage/cache',
     ];
 
-    $cache = new MemcachedCache();
+    $cache = new \Chocofamily\PubSub\Cache\Memcached();
+
     if (empty($cache->getServerList())) {
         $cache->addServer('localhost', 11211);
     }

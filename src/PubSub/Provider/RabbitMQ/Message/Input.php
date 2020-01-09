@@ -15,7 +15,6 @@ class Input implements Message
 
     private $body;
 
-
     public function __construct(AMQPMessage $message)
     {
         $this->headers                = array_merge(
@@ -33,7 +32,6 @@ class Input implements Message
     {
         return $this->body;
     }
-
 
     public function getHeader($key, $default = null)
     {

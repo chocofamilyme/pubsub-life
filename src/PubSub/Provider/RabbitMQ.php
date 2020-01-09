@@ -32,7 +32,6 @@ class RabbitMQ extends AbstractProvider
     const DEFAULT_EXCHANGE_TYPE = 'topic';
 
     /**
-     *
      * @var bool
      */
     private $passive = false;
