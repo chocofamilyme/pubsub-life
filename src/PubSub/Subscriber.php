@@ -58,9 +58,4 @@ class Subscriber
         $this->callback = $callback;
         $this->provider->subscribe([$this, 'callback'], $this->params, $this->consumerTag);
     }
-
-    public function callback(MessageInterface $message)
-    {
-        call_user_func($this->callback, $message->getHeaders(), $message->getPayload());
-    }
 }
