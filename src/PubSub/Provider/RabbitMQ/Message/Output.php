@@ -9,7 +9,7 @@ namespace Chocofamily\PubSub\Provider\RabbitMQ\Message;
 use PhpAmqpLib\Message\AMQPMessage;
 use PhpAmqpLib\Wire\AMQPTable;
 
-class Output implements \Chocofamily\PubSub\Message
+class Output implements \Chocofamily\PubSub\MessageInterface
 {
     /** @var AMQPMessage */
     private $payload;

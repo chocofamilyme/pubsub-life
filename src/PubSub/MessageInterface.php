@@ -6,7 +6,7 @@
 
 namespace Chocofamily\PubSub;
 
-interface Message
+interface MessageInterface
 {
     /**
      * @return mixed

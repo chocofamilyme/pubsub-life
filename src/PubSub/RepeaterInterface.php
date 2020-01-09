@@ -9,9 +9,9 @@ namespace Chocofamily\PubSub;
 interface RepeaterInterface
 {
     /**
-     * @param Message $inputMessage
+     * @param MessageInterface $inputMessage
      *
      * @return bool
      */
-    public function isRepeatable(Message $inputMessage);
+    public function isRepeatable(MessageInterface $inputMessage);
 }

@@ -6,9 +6,9 @@
 
 namespace Helper\PubSub\Message;
 
-use Chocofamily\PubSub\Message;
+use Chocofamily\PubSub\MessageInterface;
 
-class Output implements Message
+class Output implements MessageInterface
 {
     private $headers = [];
 

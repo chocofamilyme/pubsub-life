@@ -7,9 +7,9 @@
 namespace Chocofamily\PubSub\Provider\RabbitMQ\Message;
 
 use PhpAmqpLib\Message\AMQPMessage;
-use Chocofamily\PubSub\Message;
+use Chocofamily\PubSub\MessageInterface;
 
-class Input implements Message
+class Input implements MessageInterface
 {
     private $headers;
 

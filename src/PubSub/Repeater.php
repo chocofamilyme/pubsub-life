@@ -27,11 +27,11 @@ class Repeater implements RepeaterInterface
     }
 
     /**
-     * @param Message $inputMessage
+     * @param MessageInterface $inputMessage
      *
      * @return bool
      */
-    public function isRepeatable(Message $inputMessage)
+    public function isRepeatable(MessageInterface $inputMessage)
     {
         $key = $this->getCacheKey($inputMessage);
 
@@ -49,11 +49,11 @@ class Repeater implements RepeaterInterface
     }
 
     /**
-     * @param Message $inputMessage
+     * @param MessageInterface $inputMessage
      *
      * @return string
      */
-    public function getCacheKey(Message $inputMessage)
+    public function getCacheKey(MessageInterface $inputMessage)
     {
         return 'ev_'.$inputMessage->getHeader('app_id').'_'.$inputMessage->getHeader('message_id');
     }

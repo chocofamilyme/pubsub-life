@@ -63,7 +63,7 @@ class Subscriber
     }
 
 
-    public function callback(Message $message)
+    public function callback(MessageInterface $message)
     {
         call_user_func($this->callback, $message->getHeaders(), $message->getPayload());
     }
