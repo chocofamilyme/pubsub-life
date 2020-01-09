@@ -15,6 +15,6 @@ $taskName = 'your_task_name';
 $subscriber = new Subscriber(getProvider(), 'book.reserved', $params, $taskName);
 
 $subscriber->subscribe(function ($headers, $body) {
-    echo print_r($headers, 1). PHP_EOL;
-    echo print_r($body, 1). PHP_EOL;
+    print_r($headers);
+    print_r($body);
 });

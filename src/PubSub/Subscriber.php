@@ -52,16 +52,12 @@ class Subscriber
         $this->exchangeName = $exchangeName;
     }
 
-
     public function subscribe($callback)
     {
         $this->provider->setCurrentExchange($this->routes, $this->exchangeName);
-
         $this->callback = $callback;
-
         $this->provider->subscribe([$this, 'callback'], $this->params, $this->consumerTag);
     }
-
 
     public function callback(MessageInterface $message)
     {
