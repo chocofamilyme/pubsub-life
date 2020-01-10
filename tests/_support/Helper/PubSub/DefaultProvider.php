@@ -7,6 +7,7 @@
 namespace Helper\PubSub;
 
 use Chocofamily\PubSub\Provider\ProviderInterface;
+use Chocofamily\PubSub\RouteInterface;
 
 /**
  * Class DefaultProvider
@@ -46,8 +47,9 @@ class DefaultProvider implements ProviderInterface
         $this->queue[$this->exchange] = $data;
     }
 
-    public function subscribe($callback, array $params = [], $consumerTag = '')
+    public function subscribe($queueName, callable $callback, $consumerTag = '')
     {
+
     }
 
     public function setMessage(array $message, array $headers = [])
@@ -55,17 +57,12 @@ class DefaultProvider implements ProviderInterface
         $this->message = \json_encode($message, JSON_UNESCAPED_UNICODE);
     }
 
-    public function setCurrentExchange($route, $exchangeName = '')
+    public function setRoute(RouteInterface $route)
     {
-        $this->exchange = $route;
+        $this->exchange = $route->getRoute();
     }
 
     public function addConfig(array $params = [])
     {
-    }
-
-    public function isConnected()
-    {
-        return true;
     }
 }

@@ -6,6 +6,8 @@
 
 namespace Chocofamily\PubSub\Provider;
 
+use Chocofamily\PubSub\RouteInterface;
+
 interface ProviderInterface
 {
     public function connect();
@@ -14,13 +16,11 @@ interface ProviderInterface
 
     public function publish();
 
-    public function subscribe($callback, array $params = [], $consumerTag = '');
+    public function subscribe($queueName, callable $callback, $consumerTag);
 
-    public function setMessage(array $message, array $headers = []);
+    public function setMessage(array $data, array $headers = []);
 
-    public function setCurrentExchange($route, $exchangeName = '');
+    public function setRoute(RouteInterface $route);
 
     public function addConfig(array $params = []);
-
-    public function isConnected();
 }

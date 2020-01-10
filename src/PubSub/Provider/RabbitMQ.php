@@ -7,6 +7,7 @@
 namespace Chocofamily\PubSub\Provider;
 
 use Chocofamily\PubSub\Exceptions\ConnectionException;
+use Chocofamily\PubSub\RouteInterface;
 use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Message\AMQPMessage;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
@@ -14,9 +15,7 @@ use PhpAmqpLib\Wire\AMQPTable;
 use PhpAmqpLib\Exception\AMQPRuntimeException;
 
 use Chocofamily\PubSub\Exceptions\RetryException;
-use Chocofamily\PubSub\Exceptions\ValidateException;
 use Chocofamily\PubSub\Provider\RabbitMQ\Message\Output as OutputMessage;
-use Chocofamily\PubSub\Provider\RabbitMQ\Exchange;
 use Chocofamily\PubSub\Provider\RabbitMQ\Message\Input as InputMessage;
 
 /**
@@ -27,13 +26,17 @@ use Chocofamily\PubSub\Provider\RabbitMQ\Message\Input as InputMessage;
  */
 class RabbitMQ extends AbstractProvider
 {
-    const REDELIVERY_COUNT      = 5;
-    const CACHE_LIFETIME        = 1800;
-    const DEFAULT_EXCHANGE_TYPE = 'topic';
+    /**
+     * Кол-во попыток публикации сообщения
+     */
+    const REDELIVERY_COUNT = 5;
 
     /**
-     * @var bool
+     * Тип отправки по-умолчанию
      */
+    const DEFAULT_EXCHANGE_TYPE = 'topic';
+
+    /** @var bool  */
     private $passive = false;
 
     /**
@@ -46,11 +49,14 @@ class RabbitMQ extends AbstractProvider
     /** @var AMQPStreamConnection */
     private $connection;
 
-    /** @var Exchange */
+    /** @var RouteInterface */
     private $currentExchange;
 
+    /** @var array */
     private $exchanges = [];
-    private $channels  = [];
+
+    /** @var array */
+    private $channels = [];
 
     /** @var OutputMessage */
     private $message;
@@ -92,7 +98,7 @@ class RabbitMQ extends AbstractProvider
      */
     public function disconnect()
     {
-        if ($this->isConnected()) {
+        if ($this->connection->isConnected()) {
             $this->clear();
             $this->connection->close();
         }
@@ -104,13 +110,13 @@ class RabbitMQ extends AbstractProvider
      */
     public function publish()
     {
-        $try = 1;
-        while ($try++ < static::REDELIVERY_COUNT) {
+        $try = static::REDELIVERY_COUNT;
+        while ($try--) {
             try {
                 $channel = $this->exchangeDeclare();
                 $channel->basic_publish(
                     $this->message->getPayload(),
-                    $this->currentExchange->getName(),
+                    $this->currentExchange->getExchange(),
                     $this->currentExchange->getRoutes()[0]
                 );
             } catch (AMQPRuntimeException $e) {
@@ -125,26 +131,18 @@ class RabbitMQ extends AbstractProvider
     /**
      * Подписка на событие
      *
-     * @param callable $callback    — Пользовательская функция для обработки сообщения
-     * @param array    $params      — Настройки очереди подписчика
-     * @param string   $consumerTag — Уникальное имя подписчика
+     * @param          $queueNameParam string Имя очереди
+     * @param callable $callback Функция обработки сообщения
+     * @param string   $consumerTag Уникальное имя подписчика
      *
-     * @throws ValidateException
      * @throws \ErrorException
      */
-    public function subscribe($callback, array $params = [], $consumerTag = '')
+    public function subscribe($queueNameParam, callable $callback, $consumerTag)
     {
-        if (empty($params['queue_name'])) {
-            throw new ValidateException('Имя очереди обязательный параметр');
-        }
-
-        $this->addConfig($params);
-
-        /** @var AMQPChannel $channel */
         $channel = $this->exchangeDeclare();
 
-        $queueName = $channel->queue_declare(
-            $params['queue_name'],
+        $queueData = $channel->queue_declare(
+            $queueNameParam,
             false,
             $this->getConfig('durable', true),
             $this->getConfig('exclusive', false),
@@ -153,10 +151,12 @@ class RabbitMQ extends AbstractProvider
             new AMQPTable($this->getConfig('queue', []))
         );
 
+        $queueName = array_shift($queueData);
+
         foreach ($this->currentExchange->getRoutes() as $route) {
             $channel->queue_bind(
-                $queueName[0],
-                $this->currentExchange->getName(),
+                $queueName,
+                $this->currentExchange->getExchange(),
                 $route
             );
         }
@@ -168,7 +168,7 @@ class RabbitMQ extends AbstractProvider
         );
 
         $channel->basic_consume(
-            $queueName[0],
+            $queueName,
             $consumerTag,
             false,
             $this->getConfig('no_ack', false),
@@ -195,21 +195,23 @@ class RabbitMQ extends AbstractProvider
 
     /**
      * Объявление точки входа и канала
+     *
+     * @return AMQPChannel
      */
     private function exchangeDeclare()
     {
-        $key = $this->currentExchange->getName();
+        $key = $this->currentExchange->getExchange();
 
         if (isset($this->exchanges[$key]) == false) {
             $this->channels[$key] = $this->connection->channel();
             $this->channels[$key]->exchange_declare(
-                $this->currentExchange->getName(),
+                $this->currentExchange->getExchange(),
                 $this->getConfig('exchange_type', self::DEFAULT_EXCHANGE_TYPE),
                 $this->passive,
                 $this->getConfig('durable', true),
                 $this->auto_delete
             );
-            $this->exchanges[$this->currentExchange->getName()] = true;
+            $this->exchanges[$this->currentExchange->getExchange()] = true;
         }
 
         return $this->channels[$key];
@@ -255,20 +257,11 @@ class RabbitMQ extends AbstractProvider
     }
 
     /**
-     * @param string|array $route
-     * @param string       $exchangeName
+     * @param RouteInterface $route
      */
-    public function setCurrentExchange($route, $exchangeName = '')
+    public function setRoute(RouteInterface $route)
     {
-        if (false == is_array($route)) {
-            $route = [$route];
-        }
-
-        if (empty($exchangeName)) {
-            $exchangeName = explode('.', $route[0])[0];
-        }
-
-        $this->currentExchange = new Exchange($exchangeName, $route);
+        $this->currentExchange = $route;
     }
 
     /**
@@ -281,15 +274,6 @@ class RabbitMQ extends AbstractProvider
         $headers        = array_merge($headers, $defaultHeaders);
         $this->message  = new OutputMessage($message, $headers);
     }
-
-    /**
-     * @return bool
-     */
-    public function isConnected()
-    {
-        return $this->connection->isConnected();
-    }
-
 
     /**
      * @param string $key
