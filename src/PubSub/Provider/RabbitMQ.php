@@ -36,7 +36,7 @@ class RabbitMQ extends AbstractProvider
      */
     const DEFAULT_EXCHANGE_TYPE = 'topic';
 
-    /** @var bool  */
+    /** @var bool */
     private $passive = false;
 
     /**
@@ -132,8 +132,8 @@ class RabbitMQ extends AbstractProvider
      * Подписка на событие
      *
      * @param          $queueNameParam string Имя очереди
-     * @param callable $callback Функция обработки сообщения
-     * @param string   $consumerTag Уникальное имя подписчика
+     * @param callable $callback       Функция обработки сообщения
+     * @param string   $consumerTag    Уникальное имя подписчика
      *
      * @throws \ErrorException
      */
@@ -178,8 +178,6 @@ class RabbitMQ extends AbstractProvider
         );
 
         $this->callback = $callback;
-
-        register_shutdown_function([$this, 'disconnect']);
 
         if (function_exists('pcntl_signal')) {
             pcntl_signal(SIGTERM, function ($signal) {
@@ -232,7 +230,7 @@ class RabbitMQ extends AbstractProvider
         $message = new InputMessage($msg);
 
         try {
-            call_user_func($this->callback, $message);
+            call_user_func($this->callback, $message->getHeaders(), $message->getPayload());
         } catch (RetryException $e) {
             if ($isNoAck == false) {
                 $repeat = $this->repeater->isRepeatable($message);

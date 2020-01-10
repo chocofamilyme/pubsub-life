@@ -1,7 +1,6 @@
 <?php
 
 use Chocofamily\PubSub\Provider\RabbitMQ;
-use Chocofamily\PubSub\Repeater;
 
 function getCacheInstance()
 {
@@ -37,8 +36,5 @@ function getProvider()
         'app_id'   => 'service.example.com',
     ];
 
-    $cache = getCacheInstance();
-
-    $repeater = new Repeater($cache);
-    return RabbitMQ::getInstance($config, $repeater);
+    return RabbitMQ::fromConfig($config);
 }

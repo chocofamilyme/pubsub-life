@@ -11,7 +11,7 @@ $params = [
 $taskName = 'your_task_name';
 
 $client = new \Chocofamily\PubSub\Client(getProvider(), new \Chocofamily\PubSub\Route(['book.reserved']));
-$client->subscribe('book', function (\Chocofamily\PubSub\Provider\RabbitMQ\Message\Input $input) {
-    print_r($input->getHeaders());
-    print_r($input->getPayload());
+$client->subscribe('book', function ($headers, $body) {
+    print_r($headers);
+    print_r($body);
 }, $taskName);

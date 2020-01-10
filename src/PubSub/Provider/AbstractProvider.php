@@ -25,15 +25,14 @@ abstract class AbstractProvider implements ProviderInterface
     /**
      * AbstractProvider constructor.
      *
-     * @param array             $config
-     * @param RepeaterInterface $repeater
+     * @param array $config
      */
-    final public function __construct(array $config, RepeaterInterface $repeater)
+    final public function __construct(array $config)
     {
-        $this->config   = $config;
-        $this->repeater = $repeater;
-
+        $this->config = $config;
         $this->connect();
+
+        register_shutdown_function([$this, 'disconnect']);
     }
 
     public function __destruct()
@@ -42,13 +41,12 @@ abstract class AbstractProvider implements ProviderInterface
     }
 
     /**
-     * @param array             $config
-     * @param RepeaterInterface $repeater
+     * @param array $config
      *
-     * @return ProviderInterface
+     * @return AbstractProvider
      */
-    final public static function getInstance(array $config, RepeaterInterface $repeater)
+    final public static function fromConfig(array $config)
     {
-        return new static($config, $repeater);
+        return new static($config);
     }
 }
