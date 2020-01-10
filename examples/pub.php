@@ -2,11 +2,7 @@
 require_once __DIR__.'/../vendor/autoload.php';
 require_once 'functions.php';
 
-use Chocofamily\PubSub\Publisher;
-
-error_reporting(E_WARNING);
-
-$publisher = new Publisher(getProvider());
+error_reporting(E_ALL ^ E_NOTICE);
 
 $payload = [
     'event_id' => \Ramsey\Uuid\Uuid::uuid4()->toString(),
@@ -14,8 +10,7 @@ $payload = [
     'age' => 25
 ];
 
-$routeKey = 'book.reserved';
-
-$publisher->send($payload, $routeKey);
+$client = new \Chocofamily\PubSub\Client(getProvider(), new \Chocofamily\PubSub\Route(['book.reserved']));
+$client->publish($payload);
 
 echo "OK\n";

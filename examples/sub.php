@@ -2,9 +2,7 @@
 require_once __DIR__.'/../vendor/autoload.php';
 require_once 'functions.php';
 
-use Chocofamily\PubSub\Subscriber;
-
-error_reporting(E_WARNING);
+error_reporting(E_ALL ^ E_NOTICE);
 
 $params = [
     'queue_name' => 'book',
@@ -12,9 +10,8 @@ $params = [
 
 $taskName = 'your_task_name';
 
-$subscriber = new Subscriber(getProvider(), 'book.reserved', $params, $taskName);
-
-$subscriber->subscribe(function ($headers, $body) {
-    print_r($headers);
-    print_r($body);
-});
+$client = new \Chocofamily\PubSub\Client(getProvider(), new \Chocofamily\PubSub\Route(['book.reserved']));
+$client->subscribe('book', function (\Chocofamily\PubSub\Provider\RabbitMQ\Message\Input $input) {
+    print_r($input->getHeaders());
+    print_r($input->getPayload());
+}, $taskName);
