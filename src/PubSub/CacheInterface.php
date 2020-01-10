@@ -8,7 +8,6 @@
 
 namespace Chocofamily\PubSub;
 
-
 interface CacheInterface
 {
     /**
