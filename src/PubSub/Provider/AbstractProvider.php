@@ -2,8 +2,6 @@
 
 namespace Chocofamily\PubSub\Provider;
 
-use Chocofamily\PubSub\RepeaterInterface;
-
 /**
  * Class AbstractProvider
  *
@@ -16,11 +14,6 @@ abstract class AbstractProvider implements ProviderInterface
      * @var array $config
      */
     protected $config;
-
-    /**
-     * @var RepeaterInterface $repeater
-     */
-    protected $repeater;
 
     /**
      * AbstractProvider constructor.

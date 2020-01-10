@@ -232,6 +232,7 @@ class RabbitMQ extends AbstractProvider
         try {
             call_user_func($this->callback, $message->getHeaders(), $message->getPayload());
         } catch (RetryException $e) {
+            // todo написать middleware для repeater
             if ($isNoAck == false) {
                 $repeat = $this->repeater->isRepeatable($message);
                 $deliveryChannel->basic_reject($msg->delivery_info['delivery_tag'], $repeat);

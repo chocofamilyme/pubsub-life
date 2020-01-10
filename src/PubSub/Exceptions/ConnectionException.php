@@ -6,6 +6,11 @@
 
 namespace Chocofamily\PubSub\Exceptions;
 
+/**
+ * Class ConnectionException
+ *
+ * @package Chocofamily\PubSub\Exceptions
+ */
 class ConnectionException extends \Exception
 {
 

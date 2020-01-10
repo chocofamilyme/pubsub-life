@@ -6,7 +6,11 @@
 
 namespace Chocofamily\PubSub\Exceptions;
 
-
+/**
+ * Class RetryException
+ *
+ * @package Chocofamily\PubSub\Exceptions
+ */
 class RetryException extends \ErrorException
 {
 
