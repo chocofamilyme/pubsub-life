@@ -18,10 +18,8 @@
         <severity>0</severity>
     </rule>
 
-    <file>./app</file>
-    <file>./tests/unit/</file>
-    <file>./tests/acceptance/</file>
-    <file>./tests/functional/</file>
+    <file>./src</file>
+    <file>./tests/unit</file>
 
     <exclude-pattern>vendor</exclude-pattern>
 </ruleset>
