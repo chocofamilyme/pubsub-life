@@ -14,5 +14,5 @@ $client = new \Chocofamily\PubSub\Client(getProvider(), new \Chocofamily\PubSub\
 $client->subscribe('book', function ($headers, $body) {
     print_r($headers);
     print_r($body);
-    // throw new \Chocofamily\PubSub\Exceptions\RetryException('RETRY');
+    throw new \Chocofamily\PubSub\Exceptions\RetryException('RETRY');
 }, $taskName);
