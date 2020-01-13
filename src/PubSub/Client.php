@@ -50,17 +50,20 @@ class Client
     }
 
     /**
-     * @param array $headers
+     * @param $key
+     * @param $value
      */
-    public function setHeaders(array $headers)
+    public function setHeader($key, $value)
     {
-        if (isset($headers['application_headers'])) {
-            $this->headers['application_headers'] = array_merge(
-                $headers['application_headers'],
-                $this->headers['application_headers']
-            );
-        }
+        $this->headers[$key] = $value;
+    }
 
-        $this->headers = array_merge($headers, $this->headers);
+    /**
+     * @param $key
+     * @param $value
+     */
+    public function setApplicationHeaders($key, $value)
+    {
+        $this->headers['application_headers'][$key] = $value;
     }
 }

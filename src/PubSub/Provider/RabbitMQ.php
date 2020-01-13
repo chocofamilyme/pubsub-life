@@ -223,8 +223,8 @@ class RabbitMQ extends AbstractProvider
                 $deliveryChannel->basic_reject($msg->delivery_info['delivery_tag'], false);
 
                 if ($message->isRepeatable()) {
-                    $cnt = $message->getHeader('receive_attempts', 0) - 1;
-                    $this->publish($this->getMessage($message->getPayload(), $message->getHeaders(), $cnt));
+                    $attempts = $message->getHeader('receive_attempts', 0) - 1;
+                    $this->publish($this->getMessage($message->getPayload(), $message->getHeaders(), $attempts));
                 }
 
                 return;
@@ -265,25 +265,6 @@ class RabbitMQ extends AbstractProvider
         $headers        = array_merge($headers, $defaultHeaders);
 
         return new OutputMessage($message, $headers, $receiveAttempts);
-    }
-
-    /**
-     * @param      $key
-     * @param null $default
-     *
-     * @return null
-     */
-    private function getConfig($key, $default = null)
-    {
-        return isset($this->config[$key]) ? $this->config[$key] : $default;
-    }
-
-    /**
-     * @param array $params
-     */
-    public function addConfig(array $params = [])
-    {
-        $this->config = array_merge($params, $this->config);
     }
 
     /**

@@ -20,13 +20,15 @@ class Route implements RouteInterface
      */
     protected $exchange = '';
 
-    /**
-     * @var array
-     */
+    /** @var array  */
     protected $routes = [];
 
     public function __construct(array $routes, $exchange = '')
     {
+        if (empty($routes)) {
+            throw new \InvalidArgumentException("Empty routes");
+        }
+
         $this->routes   = $routes;
         $this->exchange = $exchange;
 

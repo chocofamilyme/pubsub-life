@@ -11,9 +11,9 @@ namespace Chocofamily\PubSub\Provider;
 abstract class AbstractProvider implements ProviderInterface
 {
     /**
-     * @var array $config
+     * @var array
      */
-    protected $config;
+    protected $config = [];
 
     /**
      * AbstractProvider constructor.
@@ -31,6 +31,25 @@ abstract class AbstractProvider implements ProviderInterface
     public function __destruct()
     {
         $this->disconnect();
+    }
+
+    /**
+     * @param      $key
+     * @param null $default
+     *
+     * @return mixed|null
+     */
+    protected function getConfig($key, $default = null)
+    {
+        return isset($this->config[$key]) ? $this->config[$key] : $default;
+    }
+
+    /**
+     * @param array $params
+     */
+    public function addConfig(array $params = [])
+    {
+        $this->config = array_merge($params, $this->config);
     }
 
     /**

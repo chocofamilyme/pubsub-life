@@ -5,9 +5,7 @@
     <arg name="extensions" value="php" />
     <arg name="error-severity" value="1" />
     <arg name="warning-severity" value="8" />
-
     <rule ref="PSR2"/>
-
     <rule ref="Generic.Files.LineLength">
         <properties>
             <property name="lineLimit" value="120"/>
@@ -17,9 +15,6 @@
     <rule ref="Generic.Files.LineEndings">
         <severity>0</severity>
     </rule>
-
     <file>./src</file>
-    <file>./tests/unit</file>
-
     <exclude-pattern>vendor</exclude-pattern>
 </ruleset>
