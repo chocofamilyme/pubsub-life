@@ -7,6 +7,7 @@
 namespace Chocofamily\PubSub\Provider;
 
 use Chocofamily\PubSub\Exceptions\ConnectionException;
+use Chocofamily\PubSub\MessageInterface;
 use Chocofamily\PubSub\RouteInterface;
 use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Message\AMQPMessage;
@@ -26,11 +27,6 @@ use Chocofamily\PubSub\Provider\RabbitMQ\Message\Input as InputMessage;
  */
 class RabbitMQ extends AbstractProvider
 {
-    /**
-     * Кол-во попыток публикации сообщения
-     */
-    const REDELIVERY_COUNT = 5;
-
     /**
      * Тип отправки по-умолчанию
      */
@@ -58,13 +54,11 @@ class RabbitMQ extends AbstractProvider
     /** @var array */
     private $channels = [];
 
-    /** @var OutputMessage */
-    private $message;
-
     /** @var callable */
     private $callback;
 
-    private $unacknowledged = 0;
+    /** @var int Кол-во сообщений, требующих подтверждения */
+    private $unacknowledgedMessages = 0;
 
     /**
      * @throws ConnectionException
@@ -104,28 +98,23 @@ class RabbitMQ extends AbstractProvider
         }
     }
 
-    /**
-     * Опубликовать сообщение
-     *
-     */
-    public function publish()
+    public function publish(MessageInterface $message)
     {
-        $try = static::REDELIVERY_COUNT;
-        while ($try--) {
+        do {
+            $keepTrying = false;
             try {
                 $channel = $this->exchangeDeclare();
                 $channel->basic_publish(
-                    $this->message->getPayload(),
+                    $message->getPayload(),
                     $this->currentExchange->getExchange(),
                     $this->currentExchange->getRoutes()[0]
                 );
             } catch (AMQPRuntimeException $e) {
+                $keepTrying = $message->isRepeatable();
                 $this->clear();
                 $this->connection->reconnect();
-                continue;
             }
-            break;
-        }
+        } while ($keepTrying);
     }
 
     /**
@@ -223,19 +212,20 @@ class RabbitMQ extends AbstractProvider
     public function callbackWrapper(AMQPMessage $msg)
     {
         /** @var AMQPChannel $deliveryChannel */
-        $deliveryChannel = $msg->delivery_info['channel'];
-
-        $isNoAck = $this->getConfig('no_ack', false);
-
-        $message = new InputMessage($msg);
+        $deliveryChannel         = $msg->delivery_info['channel'];
+        $confirmMsgAutomatically = $this->getConfig('no_ack', false);
+        $message                 = new InputMessage($msg);
 
         try {
             call_user_func($this->callback, $message->getHeaders(), $message->getPayload());
         } catch (RetryException $e) {
-            // todo написать middleware для repeater
-            if ($isNoAck == false) {
-                $repeat = $this->repeater->isRepeatable($message);
-                $deliveryChannel->basic_reject($msg->delivery_info['delivery_tag'], $repeat);
+            if (!$confirmMsgAutomatically) {
+                $deliveryChannel->basic_reject($msg->delivery_info['delivery_tag'], false);
+
+                if ($message->isRepeatable()) {
+                    $cnt = $message->getHeader('receive_attempts', 0) - 1;
+                    $this->publish($this->getMessage($message->getPayload(), $message->getHeaders(), $cnt));
+                }
 
                 return;
             }
@@ -245,13 +235,12 @@ class RabbitMQ extends AbstractProvider
             throw $e;
         }
 
-        $this->unacknowledged++;
-        if ($isNoAck == false and $this->unacknowledged == $this->getConfig('prefetch_count', 1)) {
-            $this->unacknowledged = 0;
-            $deliveryChannel->basic_ack(
-                $msg->delivery_info['delivery_tag'],
-                $this->getConfig('prefetch_count', 1) > 1
-            );
+        $this->unacknowledgedMessages++;
+        $prefetchCount = $this->getConfig('prefetch_count', 1);
+
+        if (!$confirmMsgAutomatically && $this->unacknowledgedMessages == $prefetchCount) {
+            $this->unacknowledgedMessages = 0;
+            $deliveryChannel->basic_ack($msg->delivery_info['delivery_tag'], $prefetchCount > 1);
         }
     }
 
@@ -266,12 +255,16 @@ class RabbitMQ extends AbstractProvider
     /**
      * @param array $message
      * @param array $headers
+     * @param int   $receiveAttempts
+     *
+     * @return OutputMessage
      */
-    public function setMessage(array $message, array $headers = [])
+    public function getMessage(array $message, array $headers, $receiveAttempts = 5)
     {
         $defaultHeaders = ['app_id' => $this->getConfig('app_id')];
         $headers        = array_merge($headers, $defaultHeaders);
-        $this->message  = new OutputMessage($message, $headers);
+
+        return new OutputMessage($message, $headers, $receiveAttempts);
     }
 
     /**

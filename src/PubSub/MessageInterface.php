@@ -25,4 +25,9 @@ interface MessageInterface
      * @return array
      */
     public function getHeaders();
+
+    /**
+     * @return bool
+     */
+    public function isRepeatable();
 }

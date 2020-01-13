@@ -45,8 +45,8 @@ class Client
      */
     public function publish(array $data)
     {
-        $this->provider->setMessage($data, $this->headers);
-        $this->provider->publish();
+        $message = $this->provider->getMessage($data, $this->headers);
+        $this->provider->publish($message);
     }
 
     /**

@@ -11,8 +11,7 @@ use Chocofamily\PubSub\MessageInterface;
 
 class Input implements MessageInterface
 {
-    private $headers;
-
+    private $headers = [];
     private $body;
 
     public function __construct(AMQPMessage $message)
@@ -41,5 +40,10 @@ class Input implements MessageInterface
     public function getHeaders()
     {
         return $this->headers;
+    }
+
+    public function isRepeatable()
+    {
+        return $this->getHeader('receive_attempts', 0) > 1;
     }
 }
