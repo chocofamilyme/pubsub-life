@@ -67,20 +67,20 @@ class RabbitMQ extends AbstractProvider
     {
         try {
             $this->connection = new AMQPStreamConnection(
-                $this->config['host'],
-                $this->config['port'],
-                $this->config['user'],
-                $this->config['password'],
-                $vhost = $this->config['vhost'] ?: '/',
-                $insist = $this->config['insist'] ?: false,
-                $login_method = 'AMQPLAIN',
-                $login_response = $this->config['login_response'] ?: null,
-                $locale = $this->config['locale'] ?: 'en_US',
-                $connection_timeout = $this->config['connection_timeout'] ?: 3.0,
-                $read_write_timeout = $this->config['read_write_timeout'] ?: 3.0,
-                $context = $this->config['context'] ?: null,
-                $keepalive = $this->config['keepalive'] ?: false,
-                $heartbeat = $this->config['heartbeat'] ?: 0
+                $this->getConfig('host'),
+                $this->getConfig('port'),
+                $this->getConfig('user'),
+                $this->getConfig('password'),
+                $this->getConfig('vhost', '/'),
+                $this->getConfig('insist', false),
+                'AMQPLAIN',
+                $this->getConfig('login_response'),
+                $this->getConfig('locale', 'en_US'),
+                $this->getConfig('connection_timeout', 3.0),
+                $this->getConfig('read_write_timeout', 3.0),
+                $this->getConfig('context'),
+                $this->getConfig('keepalive', false),
+                $this->getConfig('heartbeat', 0)
             );
         } catch (\Exception $e) {
             throw new ConnectionException($e->getMessage(), $e->getCode(), $e);
@@ -268,12 +268,12 @@ class RabbitMQ extends AbstractProvider
     }
 
     /**
-     * @param string $key
-     * @param        $default
+     * @param      $key
+     * @param null $default
      *
-     * @return mixed
+     * @return null
      */
-    private function getConfig($key, $default = '')
+    private function getConfig($key, $default = null)
     {
         return isset($this->config[$key]) ? $this->config[$key] : $default;
     }
