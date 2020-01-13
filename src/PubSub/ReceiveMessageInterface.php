@@ -6,25 +6,22 @@
 
 namespace Chocofamily\PubSub;
 
-interface MessageInterface
+interface ReceiveMessageInterface
 {
     /**
      * @return mixed
      */
-    public function getPayload();
-
-    /**
-     * @param      $key
-     * @param null $default
-     *
-     * @return mixed
-     */
-    public function getHeader($key, $default = null);
+    public function getBody();
 
     /**
      * @return array
      */
     public function getHeaders();
+
+    /**
+     * @return array
+     */
+    public function getParams();
 
     /**
      * @return bool

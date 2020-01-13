@@ -8,10 +8,10 @@
 
 namespace Helper\Unit;
 
-
-use Chocofamily\PubSub\MessageInterface;
+use Chocofamily\PubSub\ReceiveMessageInterface;
 use Chocofamily\PubSub\Provider\AbstractProvider;
 use Chocofamily\PubSub\RouteInterface;
+use Chocofamily\PubSub\SendMessageInterface;
 
 class DummyProvider extends AbstractProvider
 {
@@ -32,9 +32,9 @@ class DummyProvider extends AbstractProvider
         self::$connected = false;
     }
 
-    public function publish(MessageInterface $message)
+    public function publish(SendMessageInterface $message)
     {
-        self::$channels[$this->route->getExchange()][$this->route->getRoutes()[0]][] = $message;
+        self::$channels[$this->route->getExchange()][$this->route->getRoutes()[0]][] = $message->getPayload();
     }
 
     public function subscribe($queueName, callable $callback, $consumerTag)
@@ -44,9 +44,10 @@ class DummyProvider extends AbstractProvider
                 if (!isset(self::$channels[$this->route->getExchange()][$route])) {
                     continue;
                 }
-                /** @var MessageInterface $message */
+
                 foreach (self::$channels[$this->route->getExchange()][$route] as $key => $message) {
-                    call_user_func($callback, $message->getHeaders(), $message->getPayload());
+                    $input = new DummyReceiveMessage($message);
+                    call_user_func($callback, $input->getHeaders(), $input->getBody(), $input->getParams());
                 }
 
                 unset(self::$channels[$this->route->getExchange()][$route]);
@@ -59,11 +60,12 @@ class DummyProvider extends AbstractProvider
         $this->route = $route;
     }
 
-    public function getMessage(array $data, array $headers, $receiveAttempts = null)
+    public function getMessage(array $data, array $params)
     {
-        $message          = new DummyMessage();
+        $message          = new DummySendMessage();
         $message->data    = $data;
-        $message->headers = $headers;
+        $message->headers = $params['application_headers'];
+        $message->params  = $params;
 
         return $message;
     }

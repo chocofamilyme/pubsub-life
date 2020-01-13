@@ -7,34 +7,37 @@
 namespace Chocofamily\PubSub\Provider\RabbitMQ\Message;
 
 use PhpAmqpLib\Message\AMQPMessage;
-use Chocofamily\PubSub\MessageInterface;
+use Chocofamily\PubSub\ReceiveMessageInterface;
 
-class Input implements MessageInterface
+class Input implements ReceiveMessageInterface
 {
-    private $headers = [];
-    private $body;
+    /** @var array */
+    protected $params = [];
+
+    /** @var array */
+    protected $headers = [];
+
+    /** @var mixed */
+    protected $body;
 
     public function __construct(AMQPMessage $message)
     {
-        $this->headers                = array_merge(
-            $message->get_properties(),
-            $message->get('application_headers')->getNativeData()
-        );
-        $this->headers['routing_key'] = $message->delivery_info['routing_key'];
+        $this->body                  = \json_decode($message->body, true);
+        $this->params                = $message->get_properties();
+        $this->params['routing_key'] = $message->delivery_info['routing_key'];
+        $this->headers               = $message->get('application_headers')->getNativeData();
 
-        unset($this->headers['application_headers']);
-
-        $this->body = \json_decode($message->body, true);
+        unset($this->params['application_headers']);
     }
 
-    public function getPayload()
+    public function getBody()
     {
         return $this->body;
     }
 
-    public function getHeader($key, $default = null)
+    public function getParams()
     {
-        return $this->headers[$key] ?: $default;
+        return $this->params;
     }
 
     public function getHeaders()
@@ -44,6 +47,10 @@ class Input implements MessageInterface
 
     public function isRepeatable()
     {
-        return $this->getHeader('receive_attempts', 0) > 1;
+        if (isset($this->headers['receive_attempts'])) {
+            return (int) $this->headers['receive_attempts'] > 1;
+        }
+
+        return false;
     }
 }

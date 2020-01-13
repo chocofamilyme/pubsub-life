@@ -7,8 +7,9 @@
 namespace Chocofamily\PubSub\Provider;
 
 use Chocofamily\PubSub\Exceptions\ConnectionException;
-use Chocofamily\PubSub\MessageInterface;
+use Chocofamily\PubSub\Message\Repeater;
 use Chocofamily\PubSub\RouteInterface;
+use Chocofamily\PubSub\SendMessageInterface;
 use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Message\AMQPMessage;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
@@ -98,7 +99,7 @@ class RabbitMQ extends AbstractProvider
         }
     }
 
-    public function publish(MessageInterface $message)
+    public function publish(SendMessageInterface $message)
     {
         do {
             $keepTrying = false;
@@ -217,16 +218,13 @@ class RabbitMQ extends AbstractProvider
         $message                 = new InputMessage($msg);
 
         try {
-            call_user_func($this->callback, $message->getHeaders(), $message->getPayload());
+            call_user_func($this->callback, $message->getHeaders(), $message->getBody(), $message->getParams());
         } catch (RetryException $e) {
             if (!$confirmMsgAutomatically) {
                 $deliveryChannel->basic_reject($msg->delivery_info['delivery_tag'], false);
 
-                if ($message->isRepeatable()) {
-                    $attempts = $message->getHeader('receive_attempts', 0) - 1;
-                    $this->publish($this->getMessage($message->getPayload(), $message->getHeaders(), $attempts));
-                }
-
+                $repeater = new Repeater($this);
+                $repeater->send($message);
                 return;
             }
         } catch (\Exception $e) {
@@ -254,17 +252,15 @@ class RabbitMQ extends AbstractProvider
 
     /**
      * @param array $message
-     * @param array $headers
-     * @param int   $receiveAttempts
+     * @param array $params
      *
-     * @return OutputMessage
+     * @return OutputMessage|\Chocofamily\PubSub\SendMessageInterface
      */
-    public function getMessage(array $message, array $headers, $receiveAttempts = 5)
+    public function getMessage(array $message, array $params)
     {
-        $defaultHeaders = ['app_id' => $this->getConfig('app_id')];
-        $headers        = array_merge($headers, $defaultHeaders);
+        $params['app_id'] = $this->getConfig('app_id');
 
-        return new OutputMessage($message, $headers, $receiveAttempts);
+        return new OutputMessage($message, $params);
     }
 
     /**

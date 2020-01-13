@@ -6,8 +6,8 @@
 
 namespace Chocofamily\PubSub\Provider;
 
-use Chocofamily\PubSub\MessageInterface;
 use Chocofamily\PubSub\RouteInterface;
+use Chocofamily\PubSub\SendMessageInterface;
 
 interface ProviderInterface
 {
@@ -15,7 +15,7 @@ interface ProviderInterface
 
     public function disconnect();
 
-    public function publish(MessageInterface $message);
+    public function publish(SendMessageInterface $message);
 
     public function subscribe($queueName, callable $callback, $consumerTag);
 
@@ -25,10 +25,9 @@ interface ProviderInterface
 
     /**
      * @param array $data
-     * @param array $headers
-     * @param null  $receiveAttempts
+     * @param array $params
      *
-     * @return MessageInterface
+     * @return SendMessageInterface
      */
-    public function getMessage(array $data, array $headers, $receiveAttempts = null);
+    public function getMessage(array $data, array $params);
 }

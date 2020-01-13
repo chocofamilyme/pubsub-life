@@ -21,7 +21,7 @@ class Client
     private $provider;
 
     /** @var array */
-    private $headers = [];
+    private $params = [];
 
     public function __construct(ProviderInterface $provider, RouteInterface $route, array $params = [])
     {
@@ -45,7 +45,11 @@ class Client
      */
     public function publish(array $data)
     {
-        $message = $this->provider->getMessage($data, $this->headers);
+        if (!isset($this->params['application_headers']['receive_attempts'])) {
+            $this->setApplicationHeader('receive_attempts', 5);
+        }
+
+        $message = $this->provider->getMessage($data, $this->params);
         $this->provider->publish($message);
     }
 
@@ -53,17 +57,17 @@ class Client
      * @param $key
      * @param $value
      */
-    public function setHeader($key, $value)
+    public function setParameter($key, $value)
     {
-        $this->headers[$key] = $value;
+        $this->params[$key] = $value;
     }
 
     /**
      * @param $key
      * @param $value
      */
-    public function setApplicationHeaders($key, $value)
+    public function setApplicationHeader($key, $value)
     {
-        $this->headers['application_headers'][$key] = $value;
+        $this->params['application_headers'][$key] = $value;
     }
 }
