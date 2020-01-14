@@ -9,10 +9,13 @@ array_shift($arguments);
 
 $payload = [
     'event_id' => \Ramsey\Uuid\Uuid::uuid4()->toString(),
-    'message' => implode(' ', $arguments) ?: 'Empty message',
+    'message'  => implode(' ', $arguments) ?: 'Empty message',
 ];
 
-$client = new \Chocofamily\PubSub\Client(getProvider(), new \Chocofamily\PubSub\Route(['book.reserved']));
-$client->publish($payload);
+$route = new \Chocofamily\PubSub\Route(['book.reserved'], '', 'book', '');
+
+getProvider()
+    ->withRoute($route)
+    ->publish($payload);
 
 echo "OK\n";

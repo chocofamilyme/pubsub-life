@@ -1,17 +1,15 @@
 <?php
 
-use Chocofamily\PubSub\Provider\RabbitMQ;
+use Chocofamily\PubSub\Adapter\RabbitMQ;
 
 function getProvider()
 {
-    $config = [
+    return RabbitMQ::fromConfig([
         'adapter'  => 'RabbitMQ',
         'host'     => 'localhost',
         'port'     => 5674,
         'user'     => 'guest',
         'password' => 'guest',
         'app_id'   => 'service.example.com',
-    ];
-
-    return RabbitMQ::fromConfig($config);
+    ]);
 }

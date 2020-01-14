@@ -4,12 +4,14 @@ require_once 'functions.php';
 
 error_reporting(E_ALL ^ E_NOTICE);
 
-$taskName = 'your_task_name';
+$route = new \Chocofamily\PubSub\Route(['book.reserved'], 'book', 'book', 'your_task_name');
 
-$client = new \Chocofamily\PubSub\Client(getProvider(), new \Chocofamily\PubSub\Route(['book.reserved']));
-$client->subscribe('book', function ($headers, $body, $params) {
-    print_r($headers);
-    print_r($body);
-    print_r($params);
-    //throw new \Chocofamily\PubSub\Exceptions\RetryException('RETRY');
-}, $taskName);
+getProvider()
+    ->withRoute($route)
+    ->subscribe(function (\Chocofamily\PubSub\InputMessageInterface $message) {
+        print_r([
+            'body'    => $message->getBody(),
+            'headers' => $message->getHeaders(),
+            'params'  => $message->getParams(),
+        ]);
+    });
