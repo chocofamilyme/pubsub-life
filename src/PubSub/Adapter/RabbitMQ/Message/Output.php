@@ -19,9 +19,16 @@ class Output implements \Chocofamily\PubSub\OutputMessageInterface
 
     /** @var array */
     private $params = [
-        'delivery_mode' => AMQPMessage::DELIVERY_MODE_PERSISTENT
+        'content_type'  => 'application/json',
+        'delivery_mode' => AMQPMessage::DELIVERY_MODE_PERSISTENT,
     ];
 
+    /**
+     * Output constructor.
+     *
+     * @param array $body
+     * @param array $params Все параметры: \PhpAmqpLib\Message\AMQPMessage::$propertyDefinitions
+     */
     public function __construct(array $body, array $params)
     {
         $this->params['message_id'] = $body['event_id'];
