@@ -4,12 +4,12 @@
  * @author  docxplusgmoon <nurgabylov.d@chocolife.kz>
  */
 
-namespace Chocofamily\PubSub\Provider\RabbitMQ\Message;
+namespace Chocofamily\PubSub\Adapter\RabbitMQ\Message;
 
 use PhpAmqpLib\Message\AMQPMessage;
 use PhpAmqpLib\Wire\AMQPTable;
 
-class Output implements \Chocofamily\PubSub\SendMessageInterface
+class Output implements \Chocofamily\PubSub\OutputMessageInterface
 {
     /** @var int Кол-во попыток публикации сообщения */
     private $publishAttempts = 5;

@@ -15,15 +15,19 @@ namespace Chocofamily\PubSub;
  */
 class Route implements RouteInterface
 {
-    /**
-     * @var string
-     */
+    /** @var string */
     protected $exchange = '';
 
-    /** @var array  */
+    /** @var string */
+    protected $queue = '';
+
+    /** @var string */
+    protected $consumer = '';
+
+    /** @var array */
     protected $routes = [];
 
-    public function __construct(array $routes, $exchange = '')
+    public function __construct(array $routes, $queue, $exchange, $consumer)
     {
         if (empty($routes)) {
             throw new \InvalidArgumentException("Empty routes");
@@ -31,10 +35,8 @@ class Route implements RouteInterface
 
         $this->routes   = $routes;
         $this->exchange = $exchange;
-
-        if (empty($exchange)) {
-            $this->exchange = explode('.', $routes[0])[0];
-        }
+        $this->queue    = $queue;
+        $this->consumer = $consumer;
     }
 
     public function getExchange()
@@ -45,5 +47,15 @@ class Route implements RouteInterface
     public function getRoutes()
     {
         return $this->routes;
+    }
+
+    public function getQueue()
+    {
+        return $this->queue;
+    }
+
+    public function getConsumer()
+    {
+        return $this->consumer;
     }
 }

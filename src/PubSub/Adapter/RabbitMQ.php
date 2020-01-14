@@ -4,12 +4,10 @@
  * @author  Moldabayev Vadim <moldabayev.v@chocolife.kz>
  */
 
-namespace Chocofamily\PubSub\Provider;
+namespace Chocofamily\PubSub\Adapter;
 
 use Chocofamily\PubSub\Exceptions\ConnectionException;
 use Chocofamily\PubSub\Message\Repeater;
-use Chocofamily\PubSub\RouteInterface;
-use Chocofamily\PubSub\SendMessageInterface;
 use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Message\AMQPMessage;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
@@ -17,8 +15,8 @@ use PhpAmqpLib\Wire\AMQPTable;
 use PhpAmqpLib\Exception\AMQPRuntimeException;
 
 use Chocofamily\PubSub\Exceptions\RetryException;
-use Chocofamily\PubSub\Provider\RabbitMQ\Message\Output as OutputMessage;
-use Chocofamily\PubSub\Provider\RabbitMQ\Message\Input as InputMessage;
+use Chocofamily\PubSub\Adapter\RabbitMQ\Message\Output as OutputMessage;
+use Chocofamily\PubSub\Adapter\RabbitMQ\Message\Input as InputMessage;
 
 /**
  * Class RabbitMQ
@@ -26,7 +24,7 @@ use Chocofamily\PubSub\Provider\RabbitMQ\Message\Input as InputMessage;
  *
  * @package Chocofamily\PubSub\Provider
  */
-class RabbitMQ extends AbstractProvider
+class RabbitMQ extends AbstractAdapter
 {
     /**
      * Тип отправки по-умолчанию
@@ -45,9 +43,6 @@ class RabbitMQ extends AbstractProvider
 
     /** @var AMQPStreamConnection */
     private $connection;
-
-    /** @var RouteInterface */
-    private $currentExchange;
 
     /** @var array */
     private $exchanges = [];
@@ -99,16 +94,20 @@ class RabbitMQ extends AbstractProvider
         }
     }
 
-    public function publish(SendMessageInterface $message)
+    public function publish(array $data, array $headers = [], array $params = [])
     {
+        $params['application_headers'] = $headers;
+
+        $message = $this->createOutputMessage($data, $params);
+
         do {
             $keepTrying = false;
             try {
                 $channel = $this->exchangeDeclare();
                 $channel->basic_publish(
                     $message->getPayload(),
-                    $this->currentExchange->getExchange(),
-                    $this->currentExchange->getRoutes()[0]
+                    $this->route->getExchange(),
+                    $this->route->getRoutes()[0]
                 );
             } catch (AMQPRuntimeException $e) {
                 $keepTrying = $message->isRepeatable();
@@ -119,20 +118,16 @@ class RabbitMQ extends AbstractProvider
     }
 
     /**
-     * Подписка на событие
-     *
-     * @param          $queueNameParam string Имя очереди
-     * @param callable $callback       Функция обработки сообщения
-     * @param string   $consumerTag    Уникальное имя подписчика
+     * @param callable $callback
      *
      * @throws \ErrorException
      */
-    public function subscribe($queueNameParam, callable $callback, $consumerTag)
+    public function subscribe(callable $callback)
     {
         $channel = $this->exchangeDeclare();
 
         $queueData = $channel->queue_declare(
-            $queueNameParam,
+            $this->route->getQueue(),
             false,
             $this->getConfig('durable', true),
             $this->getConfig('exclusive', false),
@@ -143,10 +138,10 @@ class RabbitMQ extends AbstractProvider
 
         $queueName = array_shift($queueData);
 
-        foreach ($this->currentExchange->getRoutes() as $route) {
+        foreach ($this->route->getRoutes() as $route) {
             $channel->queue_bind(
                 $queueName,
-                $this->currentExchange->getExchange(),
+                $this->route->getExchange(),
                 $route
             );
         }
@@ -159,7 +154,7 @@ class RabbitMQ extends AbstractProvider
 
         $channel->basic_consume(
             $queueName,
-            $consumerTag,
+            $this->route->getConsumer(),
             false,
             $this->getConfig('no_ack', false),
             $this->getConfig('basic_consume_exclusive', false),
@@ -188,18 +183,18 @@ class RabbitMQ extends AbstractProvider
      */
     private function exchangeDeclare()
     {
-        $key = $this->currentExchange->getExchange();
+        $key = $this->route->getExchange();
 
         if (isset($this->exchanges[$key]) == false) {
             $this->channels[$key] = $this->connection->channel();
             $this->channels[$key]->exchange_declare(
-                $this->currentExchange->getExchange(),
+                $this->route->getExchange(),
                 $this->getConfig('exchange_type', self::DEFAULT_EXCHANGE_TYPE),
                 $this->passive,
                 $this->getConfig('durable', true),
                 $this->auto_delete
             );
-            $this->exchanges[$this->currentExchange->getExchange()] = true;
+            $this->exchanges[$this->route->getExchange()] = true;
         }
 
         return $this->channels[$key];
@@ -218,13 +213,14 @@ class RabbitMQ extends AbstractProvider
         $message                 = new InputMessage($msg);
 
         try {
-            call_user_func($this->callback, $message->getHeaders(), $message->getBody(), $message->getParams());
+            call_user_func($this->callback, $message);
         } catch (RetryException $e) {
             if (!$confirmMsgAutomatically) {
                 $deliveryChannel->basic_reject($msg->delivery_info['delivery_tag'], false);
 
                 $repeater = new Repeater($this);
                 $repeater->send($message);
+
                 return;
             }
         } catch (\Exception $e) {
@@ -243,20 +239,12 @@ class RabbitMQ extends AbstractProvider
     }
 
     /**
-     * @param RouteInterface $route
-     */
-    public function setRoute(RouteInterface $route)
-    {
-        $this->currentExchange = $route;
-    }
-
-    /**
      * @param array $message
      * @param array $params
      *
-     * @return OutputMessage|\Chocofamily\PubSub\SendMessageInterface
+     * @return OutputMessage|\Chocofamily\PubSub\OutputMessageInterface
      */
-    public function getMessage(array $message, array $params)
+    protected function createOutputMessage(array $message, array $params)
     {
         $params['app_id'] = $this->getConfig('app_id');
 

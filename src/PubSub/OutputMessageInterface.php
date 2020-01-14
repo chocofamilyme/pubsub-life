@@ -13,7 +13,7 @@ namespace Chocofamily\PubSub;
  *
  * @package Chocofamily\PubSub
  */
-interface SendMessageInterface
+interface OutputMessageInterface
 {
     /**
      * @return mixed

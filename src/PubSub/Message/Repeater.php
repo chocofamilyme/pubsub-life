@@ -8,8 +8,8 @@
 
 namespace Chocofamily\PubSub\Message;
 
-use Chocofamily\PubSub\Provider\ProviderInterface;
-use Chocofamily\PubSub\ReceiveMessageInterface;
+use Chocofamily\PubSub\Adapter\AdapterInterface;
+use Chocofamily\PubSub\InputMessageInterface;
 
 /**
  * Class Repeater
@@ -19,19 +19,19 @@ use Chocofamily\PubSub\ReceiveMessageInterface;
 class Repeater
 {
     /**
-     * @var ProviderInterface
+     * @var AdapterInterface
      */
     protected $provider;
 
-    public function __construct(ProviderInterface $provider)
+    public function __construct(AdapterInterface $provider)
     {
         $this->provider = $provider;
     }
 
     /**
-     * @param ReceiveMessageInterface $message
+     * @param InputMessageInterface $message
      */
-    public function send(ReceiveMessageInterface $message)
+    public function send(InputMessageInterface $message)
     {
         if (!$message->isRepeatable()) {
             return;

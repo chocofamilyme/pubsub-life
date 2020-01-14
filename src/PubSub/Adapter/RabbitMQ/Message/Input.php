@@ -4,12 +4,12 @@
  * @author  Moldabayev Vadim <moldabayev.v@chocolife.kz>
  */
 
-namespace Chocofamily\PubSub\Provider\RabbitMQ\Message;
+namespace Chocofamily\PubSub\Adapter\RabbitMQ\Message;
 
 use PhpAmqpLib\Message\AMQPMessage;
-use Chocofamily\PubSub\ReceiveMessageInterface;
+use Chocofamily\PubSub\InputMessageInterface;
 
-class Input implements ReceiveMessageInterface
+class Input implements InputMessageInterface
 {
     /** @var array */
     protected $params = [];
