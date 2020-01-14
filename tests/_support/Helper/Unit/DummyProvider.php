@@ -8,17 +8,11 @@
 
 namespace Helper\Unit;
 
-use Chocofamily\PubSub\ReceiveMessageInterface;
-use Chocofamily\PubSub\Provider\AbstractProvider;
-use Chocofamily\PubSub\RouteInterface;
-use Chocofamily\PubSub\SendMessageInterface;
+use Chocofamily\PubSub\Adapter\AbstractAdapter;
 
-class DummyProvider extends AbstractProvider
+class DummyProvider extends AbstractAdapter
 {
     public static $channels = [];
-
-    /** @var RouteInterface */
-    protected $route;
 
     public static $connected = false;
 
@@ -32,12 +26,14 @@ class DummyProvider extends AbstractProvider
         self::$connected = false;
     }
 
-    public function publish(SendMessageInterface $message)
+    public function publish(array $data, array $headers = [], array $params = [])
     {
+        $message = $this->getMessage($data, $params, $headers);
+
         self::$channels[$this->route->getExchange()][$this->route->getRoutes()[0]][] = $message->getPayload();
     }
 
-    public function subscribe($queueName, callable $callback, $consumerTag)
+    public function subscribe(callable $callback)
     {
         while (!empty(self::$channels[$this->route->getExchange()])) {
             foreach ($this->route->getRoutes() as $route) {
@@ -46,8 +42,8 @@ class DummyProvider extends AbstractProvider
                 }
 
                 foreach (self::$channels[$this->route->getExchange()][$route] as $key => $message) {
-                    $input = new DummyReceiveMessage($message);
-                    call_user_func($callback, $input->getHeaders(), $input->getBody(), $input->getParams());
+                    $input = new DummyInputMessage($message);
+                    call_user_func($callback, $input);
                 }
 
                 unset(self::$channels[$this->route->getExchange()][$route]);
@@ -55,16 +51,11 @@ class DummyProvider extends AbstractProvider
         }
     }
 
-    public function setRoute(RouteInterface $route)
+    public function getMessage(array $data, array $params, array $headers)
     {
-        $this->route = $route;
-    }
-
-    public function getMessage(array $data, array $params)
-    {
-        $message          = new DummySendMessage();
+        $message          = new DummyOutputMessage();
         $message->data    = $data;
-        $message->headers = $params['application_headers'];
+        $message->headers = $headers;
         $message->params  = $params;
 
         return $message;

@@ -8,9 +8,9 @@
 
 namespace Helper\Unit;
 
-use Chocofamily\PubSub\SendMessageInterface;
+use Chocofamily\PubSub\OutputMessageInterface;
 
-class DummySendMessage implements SendMessageInterface
+class DummyOutputMessage implements OutputMessageInterface
 {
     public $data = [];
     public $headers = [];

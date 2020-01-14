@@ -9,15 +9,15 @@
 namespace Helper\Unit;
 
 
-use Chocofamily\PubSub\ReceiveMessageInterface;
+use Chocofamily\PubSub\InputMessageInterface;
 
-class DummyReceiveMessage implements ReceiveMessageInterface
+class DummyInputMessage implements InputMessageInterface
 {
     private $data    = [];
     private $headers = [];
     private $params  = [];
 
-    public function __construct(DummySendMessage $message)
+    public function __construct(DummyOutputMessage $message)
     {
         $this->data    = $message->data;
         $this->headers = $message->headers;

@@ -15,8 +15,8 @@ class ProviderCest
             'app_id' => $appId,
         ]);
 
-        $I->assertTrue($provider instanceof \Chocofamily\PubSub\Provider\ProviderInterface);
-        $I->assertTrue($provider instanceof \Chocofamily\PubSub\Provider\AbstractProvider);
+        $I->assertTrue($provider instanceof \Chocofamily\PubSub\Adapter\AdapterInterface);
+        $I->assertTrue($provider instanceof \Chocofamily\PubSub\Adapter\AbstractAdapter);
         $I->assertTrue($provider instanceof \Helper\Unit\DummyProvider);
         $I->assertTrue(\Helper\Unit\DummyProvider::$connected);
 
@@ -30,51 +30,54 @@ class ProviderCest
     public function tryToPublishMessage(\UnitTester $I)
     {
         $provider = \Helper\Unit\DummyProvider::fromConfig([]);
-        $route    = new \Chocofamily\PubSub\Route(['route1'], 'exchange1');
+        $route    = new \Chocofamily\PubSub\Route(['route1'], '', 'exchange1', '');
 
-        $client = new \Chocofamily\PubSub\Client($provider, $route);
-
-        $client->setParameter('app_id', 123);
-        $client->setApplicationHeader('message_id', 123);
-        $client->setApplicationHeader('user', 123);
+        $provider->withRoute($route);
 
         foreach (range(1, 3) as $value) {
-            $client->setParameter('app_id', 123);
-            $client->setApplicationHeader('message_id', $value);
-
-            $client->publish([
+            $provider->publish([
                 'id'      => $value,
                 'message' => 'Hello, world',
+            ], [
+                'user'       => 123,
+                'message_id' => $value,
+            ], [
+                'app_id' => 123,
             ]);
         }
 
         $message = \Helper\Unit\DummyProvider::$channels[$route->getExchange()][$route->getRoutes()[0]][0] ?: null;
-        $I->assertTrue($message instanceof \Helper\Unit\DummySendMessage);
+        $I->assertTrue($message instanceof \Helper\Unit\DummyOutputMessage);
     }
 
     public function tryToSubscribeMessage(\UnitTester $I)
     {
         $provider = \Helper\Unit\DummyProvider::fromConfig([]);
-        $route    = new \Chocofamily\PubSub\Route(['route1'], 'exchange1');
+        $route    = new \Chocofamily\PubSub\Route(['route1'], 'queue', 'exchange1', __METHOD__);
 
         $count         = 0;
         $messageExists = false;
 
-        $client = new \Chocofamily\PubSub\Client($provider, $route);
-        $client->subscribe('queue', function (array $headers, array $body, array $params) use (
-            $I,
-            &$messageExists,
-            &$count
-        ) {
-            $count++;
-            $messageExists = true;
+        $provider
+            ->withRoute($route)
+            ->subscribe(function (\Chocofamily\PubSub\InputMessageInterface $message) use (
+                $I,
+                &$messageExists,
+                &$count
+            ) {
+                $count++;
+                $messageExists = true;
 
-            $I->assertEquals($params['app_id'], 123);
-            $I->assertEquals($headers['message_id'], $count);
-            $I->assertEquals($headers['user'], 123);
-            $I->assertEquals($body['id'], $count);
-            $I->assertEquals($body['message'], 'Hello, world');
-        }, __METHOD__);
+                $params  = $message->getParams();
+                $headers = $message->getHeaders();
+                $body    = $message->getBody();
+
+                $I->assertEquals($params['app_id'], 123);
+                $I->assertEquals($headers['message_id'], $count);
+                $I->assertEquals($headers['user'], 123);
+                $I->assertEquals($body['id'], $count);
+                $I->assertEquals($body['message'], 'Hello, world');
+            });
 
         $I->assertTrue($messageExists);
         $I->assertEmpty(\Helper\Unit\DummyProvider::$channels[$route->getExchange()]);
