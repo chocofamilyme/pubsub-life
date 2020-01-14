@@ -22,30 +22,16 @@ use Chocofamily\PubSub\Adapter\RabbitMQ\Message\Input as InputMessage;
  * Class RabbitMQ
  * Работает с брокером сообщений RabbitMQ
  *
+ * Документация по брокеру:
+ *
+ * https://www.rabbitmq.com/documentation.html
+ *
  * @package Chocofamily\PubSub\Provider
  */
 class RabbitMQ extends AbstractAdapter
 {
-    /**
-     * Тип отправки по-умолчанию
-     */
-    const DEFAULT_EXCHANGE_TYPE = 'topic';
-
-    /** @var bool */
-    private $passive = false;
-
-    /**
-     * Удаление exchange если нет подключений к нему
-     *
-     * @var bool
-     */
-    private $auto_delete = false;
-
     /** @var AMQPStreamConnection */
     private $connection;
-
-    /** @var array */
-    private $exchanges = [];
 
     /** @var array */
     private $channels = [];
@@ -193,21 +179,22 @@ class RabbitMQ extends AbstractAdapter
      */
     private function exchangeDeclare()
     {
-        $key = $this->route->getExchange();
+        $exchangeName = $this->route->getExchange();
 
-        if (isset($this->exchanges[$key]) == false) {
-            $this->channels[$key] = $this->connection->channel();
-            $this->channels[$key]->exchange_declare(
-                $this->route->getExchange(),
-                $this->getConfig('exchange_type', self::DEFAULT_EXCHANGE_TYPE),
-                $this->passive,
+        if (!isset($this->channels[$exchangeName])) {
+            $channel = $this->connection->channel();
+            $channel->exchange_declare(
+                $exchangeName,
+                $this->getConfig('exchange_type', 'topic'),
+                $this->getConfig('passive', false),
                 $this->getConfig('durable', true),
-                $this->auto_delete
+                $this->getConfig('auto_delete', false)
             );
-            $this->exchanges[$this->route->getExchange()] = true;
+
+            $this->channels[$exchangeName] = $channel;
         }
 
-        return $this->channels[$key];
+        return $this->channels[$exchangeName];
     }
 
     /**
@@ -264,8 +251,7 @@ class RabbitMQ extends AbstractAdapter
      */
     private function clear()
     {
-        $this->exchanges = [];
-        $this->channels  = [];
+        $this->channels = [];
     }
 
     /**
