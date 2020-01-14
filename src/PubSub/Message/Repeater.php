@@ -18,6 +18,8 @@ use Chocofamily\PubSub\InputMessageInterface;
  */
 class Repeater
 {
+    const DEFAULT_REPEAT_ATTEMPTS = 5;
+
     /**
      * @var AdapterInterface
      */
@@ -31,18 +33,23 @@ class Repeater
     /**
      * @param InputMessageInterface $message
      */
-    public function send(InputMessageInterface $message)
+    public function resend(InputMessageInterface $message)
     {
         if (!$message->isRepeatable()) {
             return;
         }
 
-        $params  = $message->getParams();
         $headers = $message->getHeaders();
 
-        $headers['receive_attempts']   -= 1;
-        $params['application_headers'] = $headers;
+        $headers['receive_attempts'] -= 1;
 
-        $this->provider->publish($this->provider->getMessage($message->getBody(), $params));
+        $this->provider->publish($message->getBody(), $headers, $message->getParams());
+    }
+
+    public function inject(&$headers)
+    {
+        if (!isset($headers['receive_attempts'])) {
+            $headers['receive_attempts'] = self::DEFAULT_REPEAT_ATTEMPTS;
+        }
     }
 }

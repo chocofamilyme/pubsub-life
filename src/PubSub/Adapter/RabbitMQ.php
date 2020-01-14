@@ -56,6 +56,15 @@ class RabbitMQ extends AbstractAdapter
     /** @var int Кол-во сообщений, требующих подтверждения */
     private $unacknowledgedMessages = 0;
 
+    /** @var Repeater */
+    private $repeater;
+
+    public function __construct(array $config)
+    {
+        parent::__construct($config);
+        $this->repeater = new Repeater($this);
+    }
+
     /**
      * @throws ConnectionException
      */
@@ -96,6 +105,7 @@ class RabbitMQ extends AbstractAdapter
 
     public function publish(array $data, array $headers = [], array $params = [])
     {
+        $this->repeater->inject($headers);
         $params['application_headers'] = $headers;
 
         $message = $this->createOutputMessage($data, $params);
@@ -217,9 +227,7 @@ class RabbitMQ extends AbstractAdapter
         } catch (RetryException $e) {
             if (!$confirmMsgAutomatically) {
                 $deliveryChannel->basic_reject($msg->delivery_info['delivery_tag'], false);
-
-                $repeater = new Repeater($this);
-                $repeater->send($message);
+                $this->repeater->resend($message);
 
                 return;
             }
@@ -258,5 +266,16 @@ class RabbitMQ extends AbstractAdapter
     {
         $this->exchanges = [];
         $this->channels  = [];
+    }
+
+    /**
+     * @param      $key
+     * @param null $default
+     *
+     * @return mixed|null
+     */
+    protected function getConfig($key, $default = null)
+    {
+        return isset($this->config[$key]) ? $this->config[$key] : $default;
     }
 }

@@ -22,7 +22,7 @@ abstract class AbstractAdapter implements AdapterInterface
      *
      * @param array $config
      */
-    final public function __construct(array $config)
+    public function __construct(array $config)
     {
         $this->config = $config;
         $this->connect();
@@ -33,17 +33,6 @@ abstract class AbstractAdapter implements AdapterInterface
     public function __destruct()
     {
         $this->disconnect();
-    }
-
-    /**
-     * @param      $key
-     * @param null $default
-     *
-     * @return mixed|null
-     */
-    protected function getConfig($key, $default = null)
-    {
-        return isset($this->config[$key]) ? $this->config[$key] : $default;
     }
 
     /**

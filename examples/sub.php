@@ -14,4 +14,5 @@ getProvider()
             'headers' => $message->getHeaders(),
             'params'  => $message->getParams(),
         ]);
+        throw new \Chocofamily\PubSub\Exceptions\RetryException();
     });
