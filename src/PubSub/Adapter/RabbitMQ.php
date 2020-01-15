@@ -15,8 +15,8 @@ use PhpAmqpLib\Wire\AMQPTable;
 use PhpAmqpLib\Exception\AMQPRuntimeException;
 
 use Chocofamily\PubSub\Exceptions\RetryException;
-use Chocofamily\PubSub\Adapter\RabbitMQ\Message\Output as OutputMessage;
-use Chocofamily\PubSub\Adapter\RabbitMQ\Message\Input as InputMessage;
+use Chocofamily\PubSub\Adapter\RabbitMQ\Message\OutputMessage;
+use Chocofamily\PubSub\Adapter\RabbitMQ\Message\InputMessage;
 
 /**
  * Class RabbitMQ
@@ -92,9 +92,9 @@ class RabbitMQ extends AbstractAdapter
     public function publish(array $data, array $headers = [], array $params = [])
     {
         $this->repeater->inject($headers);
-        $params['application_headers'] = $headers;
+        $params['app_id'] = $this->getConfig('app_id');
 
-        $message = $this->createOutputMessage($data, $params);
+        $message = new OutputMessage($data, $params, $headers);
 
         do {
             $keepTrying = false;
@@ -231,19 +231,6 @@ class RabbitMQ extends AbstractAdapter
             $this->unacknowledgedMessages = 0;
             $deliveryChannel->basic_ack($msg->delivery_info['delivery_tag'], $prefetchCount > 1);
         }
-    }
-
-    /**
-     * @param array $message
-     * @param array $params
-     *
-     * @return OutputMessage|\Chocofamily\PubSub\OutputMessageInterface
-     */
-    protected function createOutputMessage(array $message, array $params)
-    {
-        $params['app_id'] = $this->getConfig('app_id');
-
-        return new OutputMessage($message, $params);
     }
 
     /**

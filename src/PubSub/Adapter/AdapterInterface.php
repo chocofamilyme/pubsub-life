@@ -16,6 +16,13 @@ interface AdapterInterface
 
     public function publish(array $data, array $headers = [], array $params = []);
 
+    /**
+     * Callback-фунцкия должна принимать параметр \Chocofamily\PubSub\InputMessageInterface
+     *
+     * @param callable $callback
+     *
+     * @return mixed
+     */
     public function subscribe(callable $callback);
 
     /**
