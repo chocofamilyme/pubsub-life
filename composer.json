@@ -1,5 +1,5 @@
 {
-  "name": "chocofamilyme/pubsub",
+  "name": "chocofamilyme/pubsub-life",
   "description": "Библиотека для реализаций паттерна Pub/Sub",
   "keywords": [
     "pubsub",
@@ -11,7 +11,7 @@
   "license": [
     "BSD-3-Clause"
   ],
-  "homepage": "https://github.com/chocofamilyme/pubsub",
+  "homepage": "https://github.com/chocofamilyme/pubsub-life",
   "authors": [
     {
       "name": "IT Chocolife.me",
