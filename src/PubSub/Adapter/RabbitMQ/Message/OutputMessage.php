@@ -29,7 +29,7 @@ class OutputMessage extends AbstractMessage implements OutputMessageInterface
      * @param array $params
      * @param array $headers
      */
-    public function __construct(array $body, array $params, array $headers)
+    public function __construct(array $body, array $headers, array $params)
     {
         $this->headers = $headers;
         $this->body    = $body;

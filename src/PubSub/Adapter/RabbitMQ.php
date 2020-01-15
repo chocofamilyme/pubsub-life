@@ -94,7 +94,7 @@ class RabbitMQ extends AbstractAdapter
         $this->repeater->inject($headers);
         $params['app_id'] = $this->getConfig('app_id');
 
-        $message = new OutputMessage($data, $params, $headers);
+        $message = new OutputMessage($data, $headers, $params);
 
         do {
             $keepTrying = false;
