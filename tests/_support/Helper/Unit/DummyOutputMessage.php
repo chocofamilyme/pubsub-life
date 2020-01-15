@@ -8,21 +8,25 @@
 
 namespace Helper\Unit;
 
+use Chocofamily\PubSub\Message\AbstractMessage;
 use Chocofamily\PubSub\OutputMessageInterface;
 
-class DummyOutputMessage implements OutputMessageInterface
+/**
+ * Class DummyOutputMessage
+ *
+ * @package Helper\Unit
+ */
+class DummyOutputMessage extends AbstractMessage implements OutputMessageInterface
 {
-    public $data = [];
-    public $headers = [];
-    public $params = [];
+    public function __construct(array $body, array $headers, array $params)
+    {
+        $this->body    = $body;
+        $this->headers = $headers;
+        $this->params  = $params;
+    }
 
     public function getPayload()
     {
         return $this;
-    }
-
-    public function isRepeatable()
-    {
-        return false;
     }
 }

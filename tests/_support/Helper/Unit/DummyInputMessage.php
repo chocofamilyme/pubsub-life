@@ -8,39 +8,20 @@
 
 namespace Helper\Unit;
 
-
 use Chocofamily\PubSub\InputMessageInterface;
+use Chocofamily\PubSub\Message\AbstractMessage;
 
-class DummyInputMessage implements InputMessageInterface
+/**
+ * Class DummyInputMessage
+ *
+ * @package Helper\Unit
+ */
+class DummyInputMessage extends AbstractMessage implements InputMessageInterface
 {
-    private $data    = [];
-    private $headers = [];
-    private $params  = [];
-
     public function __construct(DummyOutputMessage $message)
     {
-        $this->data    = $message->data;
-        $this->headers = $message->headers;
-        $this->params  = $message->params;
-    }
-
-    public function getBody()
-    {
-        return $this->data;
-    }
-
-    public function getParams()
-    {
-        return $this->params;
-    }
-
-    public function isRepeatable()
-    {
-        return false;
-    }
-
-    public function getHeaders()
-    {
-        return $this->headers;
+        $this->body    = $message->getBody();
+        $this->headers = $message->getHeaders();
+        $this->params  = $message->getParams();
     }
 }
