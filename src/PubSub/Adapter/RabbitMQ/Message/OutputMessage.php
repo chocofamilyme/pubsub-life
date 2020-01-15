@@ -6,19 +6,18 @@
 
 namespace Chocofamily\PubSub\Adapter\RabbitMQ\Message;
 
+use Chocofamily\PubSub\OutputMessageInterface;
+use Chocofamily\PubSub\Message\AbstractMessage;
 use PhpAmqpLib\Message\AMQPMessage;
 use PhpAmqpLib\Wire\AMQPTable;
 
-class Output implements \Chocofamily\PubSub\OutputMessageInterface
+class OutputMessage extends AbstractMessage implements OutputMessageInterface
 {
     /** @var int Кол-во попыток публикации сообщения */
-    private $publishAttempts = 5;
+    protected $publishAttempts = 5;
 
     /** @var array */
-    private $payload;
-
-    /** @var array */
-    private $params = [
+    protected $params = [
         'content_type'  => 'application/json',
         'delivery_mode' => AMQPMessage::DELIVERY_MODE_PERSISTENT,
     ];
@@ -27,18 +26,18 @@ class Output implements \Chocofamily\PubSub\OutputMessageInterface
      * Output constructor.
      *
      * @param array $body
-     * @param array $params Все параметры: \PhpAmqpLib\Message\AMQPMessage::$propertyDefinitions
+     * @param array $params
+     * @param array $headers
      */
-    public function __construct(array $body, array $params)
+    public function __construct(array $body, array $params, array $headers)
     {
+        $this->headers = $headers;
+        $this->body    = $body;
+
         $this->params['message_id'] = $body['event_id'];
         $this->params               = array_merge($this->params, $params);
 
-        $table = new AMQPTable($this->params['application_headers']);
-        unset($this->params['application_headers']);
-
-        $this->payload = new AMQPMessage(\json_encode($body), $this->params);
-        $this->payload->set('application_headers', $table);
+        unset($this->body['event_id']);
     }
 
     /**
@@ -49,8 +48,14 @@ class Output implements \Chocofamily\PubSub\OutputMessageInterface
         return (bool) --$this->publishAttempts;
     }
 
+    /**
+     * @return mixed|AMQPMessage
+     */
     public function getPayload()
     {
-        return $this->payload;
+        $payload = new AMQPMessage(\json_encode($this->body), $this->params);
+        $payload->set('application_headers', new AMQPTable($this->headers));
+
+        return $payload;
     }
 }

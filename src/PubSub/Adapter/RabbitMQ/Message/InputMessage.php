@@ -6,20 +6,12 @@
 
 namespace Chocofamily\PubSub\Adapter\RabbitMQ\Message;
 
+use Chocofamily\PubSub\Message\AbstractMessage;
 use PhpAmqpLib\Message\AMQPMessage;
 use Chocofamily\PubSub\InputMessageInterface;
 
-class Input implements InputMessageInterface
+class InputMessage extends AbstractMessage implements InputMessageInterface
 {
-    /** @var array */
-    protected $params = [];
-
-    /** @var array */
-    protected $headers = [];
-
-    /** @var mixed */
-    protected $body;
-
     public function __construct(AMQPMessage $message)
     {
         $this->body                  = \json_decode($message->body, true);
@@ -28,21 +20,6 @@ class Input implements InputMessageInterface
         $this->headers               = $message->get('application_headers')->getNativeData();
 
         unset($this->params['application_headers']);
-    }
-
-    public function getBody()
-    {
-        return $this->body;
-    }
-
-    public function getParams()
-    {
-        return $this->params;
-    }
-
-    public function getHeaders()
-    {
-        return $this->headers;
     }
 
     public function isRepeatable()

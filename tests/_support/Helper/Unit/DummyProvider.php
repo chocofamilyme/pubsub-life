@@ -28,7 +28,7 @@ class DummyProvider extends AbstractAdapter
 
     public function publish(array $data, array $headers = [], array $params = [])
     {
-        $message = $this->getMessage($data, $params, $headers);
+        $message = new DummyOutputMessage($data, $headers, $params);
 
         self::$channels[$this->route->getExchange()][$this->route->getRoutes()[0]][] = $message->getPayload();
     }
@@ -49,15 +49,5 @@ class DummyProvider extends AbstractAdapter
                 unset(self::$channels[$this->route->getExchange()][$route]);
             }
         }
-    }
-
-    public function getMessage(array $data, array $params, array $headers)
-    {
-        $message          = new DummyOutputMessage();
-        $message->data    = $data;
-        $message->headers = $headers;
-        $message->params  = $params;
-
-        return $message;
     }
 }
