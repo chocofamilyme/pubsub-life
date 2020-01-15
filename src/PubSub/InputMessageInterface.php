@@ -6,25 +6,14 @@
 
 namespace Chocofamily\PubSub;
 
-interface InputMessageInterface
+use Chocofamily\PubSub\Message\MessageInterface;
+
+/**
+ * Interface InputMessageInterface
+ *
+ * @package Chocofamily\PubSub
+ */
+interface InputMessageInterface extends MessageInterface
 {
-    /**
-     * @return mixed
-     */
-    public function getBody();
 
-    /**
-     * @return array
-     */
-    public function getHeaders();
-
-    /**
-     * @return array
-     */
-    public function getParams();
-
-    /**
-     * @return bool
-     */
-    public function isRepeatable();
 }

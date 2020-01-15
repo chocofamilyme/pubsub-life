@@ -8,20 +8,17 @@
 
 namespace Chocofamily\PubSub;
 
+use Chocofamily\PubSub\Message\MessageInterface;
+
 /**
  * Interface SendMessageInterface
  *
  * @package Chocofamily\PubSub
  */
-interface OutputMessageInterface
+interface OutputMessageInterface extends MessageInterface
 {
     /**
      * @return mixed
      */
     public function getPayload();
-
-    /**
-     * @return bool
-     */
-    public function isRepeatable();
 }
