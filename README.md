@@ -15,7 +15,7 @@
 
 ### Установка
 ```
-composer require chocofamilyme/pubsub
+composer require composer require chocofamilyme/pubsub-life
 ```
 
 ### Настройка
@@ -66,4 +66,4 @@ composer require chocofamilyme/pubsub
 
  1. Реализовать транзакционность (возможно обертка над библиотекой)
  2. Внедрить middleware-объекты для реализации разных обработчиков (логирование, обработка исключений, перезапуск callback-функции и тд)
- 3. Покрыть тестами
+ 3. Покрыть тестами (50%)
