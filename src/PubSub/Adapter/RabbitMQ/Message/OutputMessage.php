@@ -33,11 +33,7 @@ class OutputMessage extends AbstractMessage implements OutputMessageInterface
     {
         $this->headers = $headers;
         $this->body    = $body;
-
-        $this->params['message_id'] = $body['event_id'];
-        $this->params               = array_merge($this->params, $params);
-
-        unset($this->body['event_id']);
+        $this->params  = array_merge($this->params, $params);
     }
 
     /**
@@ -45,7 +41,9 @@ class OutputMessage extends AbstractMessage implements OutputMessageInterface
      */
     public function isRepeatable()
     {
-        return (bool) --$this->publishAttempts;
+        $this->publishAttempts -= 1;
+
+        return $this->publishAttempts >= 0;
     }
 
     /**
