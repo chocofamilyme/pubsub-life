@@ -15,7 +15,8 @@
   "authors": [
     {
       "name": "IT Chocolife.me",
-      "homepage": "https://chocolife.me/"
+      "homepage": "https://chocolife.me/",
+      "email": "it@chocolife.kz"
     }
   ],
   "require": {
