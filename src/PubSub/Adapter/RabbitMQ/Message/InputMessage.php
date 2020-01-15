@@ -14,10 +14,14 @@ class InputMessage extends AbstractMessage implements InputMessageInterface
 {
     public function __construct(AMQPMessage $message)
     {
-        $this->body                  = \json_decode($message->body, true);
-        $this->params                = $message->get_properties();
-        $this->params['routing_key'] = $message->delivery_info['routing_key'];
-        $this->headers               = $message->get('application_headers')->getNativeData();
+        $this->body   = \json_decode($message->body, true);
+        $this->params = $message->get_properties();
+
+        if (isset($message->delivery_info['routing_key'])) {
+            $this->params['routing_key'] = $message->delivery_info['routing_key'];
+        }
+
+        $this->headers = $message->get('application_headers')->getNativeData();
 
         unset($this->params['application_headers']);
     }
@@ -25,7 +29,7 @@ class InputMessage extends AbstractMessage implements InputMessageInterface
     public function isRepeatable()
     {
         if (isset($this->headers['receive_attempts'])) {
-            return (int) $this->headers['receive_attempts'] > 1;
+            return (int) $this->headers['receive_attempts'] > 0;
         }
 
         return false;
