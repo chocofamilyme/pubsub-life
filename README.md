@@ -2,7 +2,7 @@
 
 Библиотека реализует событийную архитектуру приложений (Event-Driven Architecture).
 
-Рабочий пример можно посмотреть вот здесь: https://github.com/chocofamilyme/pubsub/tree/master/examples
+Рабочий пример можно посмотреть вот здесь: https://github.com/chocofamilyme/pubsub-life/tree/master/examples
 
 ### Возможности
 - Публикация событий без транзакции
@@ -15,7 +15,7 @@
 
 ### Установка
 ```
-composer require composer require chocofamilyme/pubsub-life
+composer require chocofamilyme/pubsub-life
 ```
 
 ### Настройка
