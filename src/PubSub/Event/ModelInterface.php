@@ -26,12 +26,12 @@ interface ModelInterface
     public function getData();
 
     /**
-     * @return mixed
+     * @return array
      */
-    public function getHeader();
+    public function getHeaders();
 
     /**
-     * @return mixed
+     * @return array
      */
     public function getParams();
 
@@ -76,22 +76,22 @@ interface ModelInterface
     public function setParams(array $data);
 
     /**
-     * @param $entityType
+     * @param string $entityType
      */
     public function setEntityType($entityType);
 
     /**
-     * @param $entityId
+     * @param integer $entityId
      */
     public function setEntityId($entityId);
 
     /**
-     * @param $publisher
+     * @param string $publisher
      */
     public function setPublisher($publisher);
 
     /**
-     * @param $eventName
+     * @param string $eventName
      */
     public function setEventName($eventName);
 
