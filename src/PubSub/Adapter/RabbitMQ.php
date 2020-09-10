@@ -116,6 +116,7 @@ class RabbitMQ extends AbstractAdapter
     /**
      * @param callable $callback
      *
+     * @return mixed|void
      * @throws \ErrorException
      */
     public function subscribe(callable $callback)
@@ -167,8 +168,10 @@ class RabbitMQ extends AbstractAdapter
             });
         }
 
-        while (count($channel->callbacks)) {
-            $channel->wait();
+        if (count($channel->callbacks) > 0) {
+            do {
+                $channel->wait();
+            } while ($this->getConfig('long_liver', true));
         }
     }
 
